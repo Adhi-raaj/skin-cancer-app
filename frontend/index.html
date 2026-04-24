@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SkinScan AI — HAM10000 Classifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">🔬</span>
+        <div>
+          <span class="logo-title">SkinScan<span class="accent">AI</span></span>
+          <span class="logo-sub">HAM10000 · ConvNeXt-Small</span>
+        </div>
+      </div>
+      <div class="header-pills">
+        <span class="pill pill--green" id="status-pill">● Connecting…</span>
+        <span class="pill pill--blue">10-Pass TTA</span>
+        <span class="pill pill--purple">Grad-CAM++</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Main ────────────────────────────────────────────────────────────── -->
+  <main class="main">
+
+    <!-- Upload panel -->
+    <section class="upload-panel" id="upload-panel">
+      <div class="upload-zone" id="drop-zone">
+        <div class="upload-icon">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <p class="upload-title">Drop a dermoscopy image here</p>
+        <p class="upload-sub">or click to browse · JPG / PNG</p>
+        <input type="file" id="file-input" accept="image/jpeg,image/png" hidden />
+        <button class="btn btn--primary" onclick="document.getElementById('file-input').click()">
+          Choose Image
+        </button>
+      </div>
+
+      <!-- Preview -->
+      <div class="preview-box hidden" id="preview-box">
+        <img id="preview-img" src="" alt="Preview" />
+        <div class="preview-meta" id="preview-meta"></div>
+        <div class="tta-row">
+          <label class="tta-label">TTA passes</label>
+          <input type="range" id="tta-slider" min="1" max="10" value="10" class="slider" />
+          <span class="tta-val" id="tta-val">10</span>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn--ghost" id="clear-btn">✕ Clear</button>
+          <button class="btn btn--primary" id="analyze-btn">Analyze →</button>
+        </div>
+      </div>
+
+      <!-- Disclaimer -->
+      <p class="disclaimer">
+        ⚠️ For research &amp; educational purposes only. Not a substitute for clinical diagnosis.
+      </p>
+    </section>
+
+    <!-- Results panel — hidden until prediction -->
+    <section class="results-panel hidden" id="results-panel">
+
+      <!-- Top prediction banner -->
+      <div class="result-banner" id="result-banner">
+        <div class="banner-left">
+          <span class="banner-label">Primary Diagnosis</span>
+          <h2 class="banner-name" id="banner-name">—</h2>
+          <span class="banner-code" id="banner-code"></span>
+        </div>
+        <div class="banner-right">
+          <div class="confidence-ring">
+            <svg class="ring-svg" viewBox="0 0 80 80">
+              <circle class="ring-bg"   cx="40" cy="40" r="32" />
+              <circle class="ring-fill" cx="40" cy="40" r="32" id="ring-fill" />
+            </svg>
+            <span class="ring-pct" id="ring-pct">0%</span>
+          </div>
+          <span class="risk-badge" id="risk-badge">—</span>
+        </div>
+      </div>
+
+      <!-- Images row -->
+      <div class="images-row">
+        <div class="img-card">
+          <span class="img-label">Original</span>
+          <img id="res-original" src="" alt="Original" />
+        </div>
+        <div class="img-card">
+          <span class="img-label">Hair Removed</span>
+          <img id="res-clean" src="" alt="Hair Removed" />
+        </div>
+        <div class="img-card">
+          <span class="img-label">Grad-CAM++</span>
+          <img id="res-gradcam" src="" alt="Grad-CAM++" />
+          <span class="img-sublabel">Attention heatmap</span>
+        </div>
+      </div>
+
+      <!-- Confidence bars -->
+      <div class="confidence-section">
+        <h3 class="section-title">Class Probabilities</h3>
+        <div class="bars" id="bars"></div>
+      </div>
+
+      <!-- Disease info card -->
+      <div class="info-card" id="info-card">
+        <h3 class="info-title" id="info-title"></h3>
+        <p class="info-desc"  id="info-desc"></p>
+      </div>
+
+      <!-- Retry -->
+      <button class="btn btn--ghost retry-btn" id="retry-btn">← Analyze another image</button>
+
+    </section>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay hidden" id="loading-overlay">
+      <div class="spinner"></div>
+      <p class="loading-text" id="loading-text">Running inference…</p>
+      <p class="loading-sub">10-pass TTA + Grad-CAM++ · this takes ~5 s on CPU</p>
+    </div>
+
+  </main>
+
+  <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+  <footer class="footer">
+    <span>ConvNeXt-Small · Focal Loss · HAM10000</span>
+    <span class="dot">·</span>
+    <span>7 Disease Classes</span>
+    <span class="dot">·</span>
+    <a href="http://localhost:8000/docs" target="_blank">API Docs</a>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
